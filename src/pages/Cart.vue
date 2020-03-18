@@ -56,9 +56,9 @@
             <div class="cart-item-head">
               <ul>
                 <li>商品信息</li>
-                <li>商品金额</li>
-                <li>商品数量</li>
-                <li>总金额</li>
+                <li>商品金额（元）</li>
+                <li>商品数量（件）</li>
+                <li>总金额（元）</li>
                 <li>编辑</li>
               </ul>
             </div>
@@ -66,7 +66,12 @@
               <li v-for="(item, index) in cartList" :key="index">
                 <div class="cart-tab-1">
                   <div class="cart-item-check">
-                    <a href="javascipt:;" class="checkbox-btn item-check-btn " :class="{ checked: item.checked }">
+                    <a
+                      href="javascipt:;"
+                      class="checkbox-btn item-check-btn "
+                      :class="{ checked: item.checked }"
+                      @click="editCart('checked', item)"
+                    >
                       <svg class="icon icon-ok">
                         <use xlink:href="#icon-ok"></use>
                       </svg>
@@ -86,15 +91,15 @@
                   <div class="item-quantity">
                     <div class="select-self select-self-open">
                       <div class="select-self-area">
-                        <a class="input-sub">-</a>
+                        <a class="input-sub" @click="editCart('minus', item)">-</a>
                         <span class="select-ipt">{{ item.productNum }}</span>
-                        <a class="input-add">+</a>
+                        <a class="input-add" @click="editCart('add', item)">+</a>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div class="cart-tab-4">
-                  <div class="item-price-total">￥{{ item.productPrice * item.productNum }}元</div>
+                  <div class="item-price-total">{{ (item.productPrice * item.productNum) | currency }}</div>
                 </div>
                 <div class="cart-tab-5">
                   <div class="cart-item-opration">
@@ -156,13 +161,30 @@ export default {
   mounted() {
     this.init() //初始化购物车列表
   },
+  filters: {
+    currency(value) {
+      if (!value) return 0.0
+      return '￥' + value.toFixed(2)
+    }
+  },
   methods: {
+    // 初始化购物车列表数据
     init() {
       this.axios.get('/mock/cart.json').then(response => {
         console.log(response)
         let res = response.data
         this.cartList = res.data
       })
+    },
+    // 修改购物车商品数量
+    editCart(type, item) {
+      if (type == 'add') {
+        item.productNum++
+      } else if (type == 'minus') {
+        item.productNum--
+      } else {
+        item.checked = !item.checked
+      }
     }
   }
 }
