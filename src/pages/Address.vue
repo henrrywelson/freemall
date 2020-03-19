@@ -76,11 +76,11 @@
           <div class="addr-list-wrap">
             <div class="addr-list">
               <ul>
-                <li class="check">
+                <li class="check" v-for="(item, index) in addressFilter" :key="index">
                   <dl>
-                    <dt>河畔一角</dt>
-                    <dd class="address">北京市昌平区</dd>
-                    <dd class="tel">17600000000</dd>
+                    <dt>{{ item.userName }}</dt>
+                    <dd class="address">{{ item.streetName }}</dd>
+                    <dd class="tel">{{ item.tel }}</dd>
                   </dl>
                   <div class="addr-opration addr-del">
                     <!-- 删除地址 -->
@@ -95,7 +95,6 @@
                   </div>
                   <div class="addr-opration addr-default">默认地址</div>
                 </li>
-
                 <li class="addr-new">
                   <div class="add-new-inner">
                     <i class="icon-add">
@@ -108,9 +107,8 @@
                 </li>
               </ul>
             </div>
-
             <div class="shipping-addr-more">
-              <a class="addr-more-btn up-down-btn open" href="javascript:;">
+              <a class="addr-more-btn up-down-btn" href="javascript:;" @click="expand" :class="{ open: limit > 3 }">
                 查看更多
                 <i class="i-up-down">
                   <i class="i-up-down-l"></i>
@@ -119,7 +117,6 @@
               </a>
             </div>
           </div>
-
           <!-- shipping method-->
           <div class="page-title-normal checkout-title">
             <h2><span>配送方式</span></h2>
@@ -157,6 +154,36 @@ export default {
     NavHeader,
     NavFooter,
     Modal
+  },
+  data() {
+    return {
+      limit: 3, //默认展示3个地址
+      addressList: [] //地址列表
+    }
+  },
+  computed: {
+    addressFilter() {
+      return this.addressList.slice(0, this.limit)
+    }
+  },
+  mounted() {
+    this.init()
+  },
+  methods: {
+    init() {
+      this.axios.get('/mock/address.json').then(response => {
+        let res = response.data
+        this.addressList = res.data
+      })
+    },
+    // 展开查看更多
+    expand() {
+      if (this.limit == 3) {
+        this.limit = this.addressList.length
+      } else {
+        this.limit = 3
+      }
+    }
   }
 }
 </script>
