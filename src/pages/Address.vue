@@ -76,7 +76,12 @@
           <div class="addr-list-wrap">
             <div class="addr-list">
               <ul>
-                <li class="check" v-for="(item, index) in addressFilter" :key="index">
+                <li
+                  :class="{ check: checkedIndex == index }"
+                  v-for="(item, index) in addressFilter"
+                  :key="index"
+                  @click="checkedIndex = index"
+                >
                   <dl>
                     <dt>{{ item.userName }}</dt>
                     <dd class="address">{{ item.streetName }}</dd>
@@ -84,16 +89,18 @@
                   </dl>
                   <div class="addr-opration addr-del">
                     <!-- 删除地址 -->
-                    <a href="javascript:;" class="addr-del-btn">
+                    <a href="javascript:;" class="addr-del-btn" @click="delAddressConfirm(item.addressId)">
                       <svg class="icon icon-del">
                         <use xlink:href="#icon-del"></use>
                       </svg>
                     </a>
                   </div>
-                  <div class="addr-opration addr-set-default">
-                    <a href="javascript:;" class="addr-set-default-btn"><i>设为默认</i></a>
+                  <div class="addr-opration addr-set-default" v-if="!item.isDefault">
+                    <a href="javascript:;" class="addr-set-default-btn" @click="setDefault(item.addressId)"
+                      ><i>设为默认</i></a
+                    >
                   </div>
-                  <div class="addr-opration addr-default">默认地址</div>
+                  <div class="addr-opration addr-default" v-if="item.isDefault">默认地址</div>
                 </li>
                 <li class="addr-new">
                   <div class="add-new-inner">
@@ -135,12 +142,19 @@
             </div>
           </div>
           <div class="next-btn-wrap">
-            <a class="btn btn--m btn--red" href="#">下一步</a>
+            <a class="btn btn--m btn--red" href="javascript:;" @click="next">下一步</a>
           </div>
         </div>
       </div>
     </div>
-    <modal></modal>
+    <modal :mdShow="modalConfirm" @close="modalConfirm = false">
+      <template v-slot:message>
+        <p>你确认要删除此条数据吗?</p>
+      </template>
+      <template vslot:btnGroup>
+        <a class="btn btn--m btn--red" href="javascript:;" @click="modalConfirm = false">关闭</a>
+      </template>
+    </modal>
     <nav-footer></nav-footer>
   </div>
 </template>
@@ -158,7 +172,9 @@ export default {
   data() {
     return {
       limit: 3, //默认展示3个地址
-      addressList: [] //地址列表
+      addressList: [], //地址列表
+      checkedIndex: 0,
+      modalConfirm: false
     }
   },
   computed: {
@@ -174,6 +190,11 @@ export default {
       this.axios.get('/mock/address.json').then(response => {
         let res = response.data
         this.addressList = res.data
+        res.data.forEach((item, index) => {
+          if (item.isDefault) {
+            this.checkedIndex = index
+          }
+        })
       })
     },
     // 展开查看更多
@@ -183,6 +204,25 @@ export default {
       } else {
         this.limit = 3
       }
+    },
+    setDefault(addressId) {
+      this.addressList.map(item => {
+        if (addressId == item.addressId) {
+          item.isDefault = true
+        } else {
+          item.isDefault = false
+        }
+      })
+    },
+    delAddressConfirm(addressId) {
+      this.addressList.map((item, index) => {
+        if (addressId == item.addressId) {
+          this.addressList.splice(index, 1)
+        }
+      })
+    },
+    next() {
+      this.modalConfirm = true
     }
   }
 }
