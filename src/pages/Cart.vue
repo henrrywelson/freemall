@@ -118,8 +118,8 @@
           <div class="cart-foot-inner">
             <div class="cart-foot-l">
               <div class="item-all-check">
-                <a href="javascipt:;">
-                  <span class="checkbox-btn item-check-btn check">
+                <a href="javascipt:;" @click="toggleCheckAll">
+                  <span class="checkbox-btn item-check-btn" :class="{ check: checkAllFlag }">
                     <svg class="icon icon-ok">
                       <use xlink:href="#icon-ok" />
                     </svg>
@@ -129,9 +129,11 @@
               </div>
             </div>
             <div class="cart-foot-r">
-              <div class="item-total">总价: <span class="total-price">￥89.00元</span></div>
+              <div class="item-total">
+                总价: <span class="total-price">{{ totalPrice | currency }}</span>
+              </div>
               <div class="btn-wrap">
-                <a class="btn btn--red btn--dis">结算</a>
+                <a class="btn btn--red" :class="{ 'btn--dis': !checkedCount }" @click="checkOut">结算</a>
               </div>
             </div>
           </div>
@@ -177,6 +179,30 @@ export default {
       return '￥' + value.toFixed(2)
     }
   },
+  computed: {
+    checkAllFlag() {
+      // 当数组中所有对象都返回 true 的时候，我们整体才会返回 true
+      return this.cartList.every(item => {
+        return item.checked
+      })
+    },
+    // 计算总金额
+    totalPrice() {
+      let money = 0
+      this.cartList.forEach(item => {
+        if (item.checked) {
+          money += item.productPrice * item.productNum
+        }
+      })
+      return money
+    },
+    // 判断购物车是否有选中的商品
+    checkedCount() {
+      return this.cartList.some(item => {
+        return item.checked
+      })
+    }
+  },
   methods: {
     // 初始化购物车列表数据
     init() {
@@ -213,6 +239,20 @@ export default {
           this.modalConfirm = false
         }
       })
+    },
+    // 全选和反选
+    toggleCheckAll() {
+      let flag = !this.checkAllFlag
+      this.cartList.forEach(item => {
+        item.checked = flag
+      })
+    },
+    checkOut() {
+      if (this.checkedCount) {
+        this.$router.push({
+          path: '/address'
+        })
+      }
     }
   }
 }
